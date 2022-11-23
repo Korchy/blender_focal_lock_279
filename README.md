@@ -8,7 +8,7 @@ Source: https://github.com/AnsonSavage/Focal_Lock
 
 Current add-on version
 -
-1.0.0.
+1.0.2.
 
 Blender versions
 -
@@ -16,7 +16,7 @@ Blender versions
 
 Location and call
 -
-The “Properties” area – "Render" tab - Focal Lock
+The “Properties” area – "Data" tab - Focal Lock
 
 Installation
 -
@@ -25,6 +25,12 @@ Installation
 
 Version history
 -
+1.0.2.
+- Fixed issue with Track constraint
+
+1.0.1.
+- Interface moved to the "Data" tab
+- Don't show interface if camera is not active
 
 1.0.0.
 - Forked

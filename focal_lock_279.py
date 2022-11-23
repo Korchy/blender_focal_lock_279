@@ -14,7 +14,7 @@ bl_info = {
     "name": "Focal Lock",
     "description": "Locks object in a camera's plane of focus",
     "author": "Nikita Akimov, Anson Savage <artstation.com/ansonsavage>, Nathan Craddock <nathancraddock.com>",
-    "version": (1, 0, 0),
+    "version": (1, 0, 2),
     "blender": (2, 79, 0),
     "location": "Properties area > Render tab > Focal Lock",
     "doc_url": "https://github.com/Korchy/blender_focal_lock_279",
@@ -76,12 +76,14 @@ def update_enable_track(self, context):
 
     # because you are only accessing enable_track once, no need to store in variable
     if settings.enable_track:
-        bpy.ops.object.select_all(action='DESELECT')
-        context.scene.camera.select = True
-        context.scene.objects.active = settings.focus_object
-        bpy.ops.object.track_set(type='TRACKTO')
+        track_constraint = context.scene.camera.constraints.new(type='TRACK_TO')
+        track_constraint.track_axis = 'TRACK_NEGATIVE_Z'
+        track_constraint.up_axis = 'UP_Y'
+        track_constraint.target = settings.focus_object
     else:
-        context.scene.camera.constraints.remove(camera_track_constraint(context))
+        track_constraint = camera_track_constraint(context)
+        if track_constraint:
+            context.scene.camera.constraints.remove(track_constraint)
 
 
 @persistent
@@ -91,7 +93,7 @@ def update_focal_length(*agrs):
         if camera.focal_lock.enable_lock and camera.focal_lock.focus_object is not None:
             currentDistance = distance_to_plane(camera.focal_lock.focus_object)
             camera.lens = currentDistance * (camera.focal_lock.focal_distance_ratio)
-            #bpy.context.scene.camera.lens = currentDistance * (bpy.context.scene.camera_settings.focal_distance_ratio)
+            # bpy.context.scene.camera.lens = currentDistance * (bpy.context.scene.camera_settings.focal_distance_ratio)
     if bpy.context.screen:
         for area in bpy.context.screen.areas:
             area.tag_redraw()
@@ -133,11 +135,11 @@ class FOCALLOCK_PT_FocalLock(Panel):
     bl_label = "Focal Lock"
     bl_space_type = 'PROPERTIES'
     bl_region_type = "WINDOW"
-    bl_context = "render"
+    bl_context = "data"
 
     @classmethod
     def poll(cls, context):
-        return context.scene.camera
+        return context.scene.camera and context.active_object == context.scene.camera
 
     def draw_header(self, context):
         cam = context.scene.camera.data
@@ -174,11 +176,11 @@ class FOCALLOCK_PT_BakeSettings(Panel):
     bl_options = {'DEFAULT_CLOSED'}
     bl_space_type = 'PROPERTIES'
     bl_region_type = "WINDOW"
-    bl_context = "render"
+    bl_context = "data"
 
     @classmethod
     def poll(cls, context):
-        return context.scene.camera
+        return context.scene.camera and context.active_object == context.scene.camera
 
     def draw(self, context):
         layout = self.layout
