@@ -13,7 +13,7 @@ from bpy.utils import register_class, unregister_class
 bl_info = {
     "name": "Focal Lock",
     "description": "Locks object in a camera's plane of focus",
-    "author": "Nikita Akimov, Anson Savage <artstation.com/ansonsavage>, Nathan Craddock <nathancraddock.com>",
+    "author": "Nikita Akimov, Paul Kotelevec, Anson Savage <artstation.com/ansonsavage>, Nathan Craddock <nathancraddock.com>",
     "version": (1, 0, 2),
     "blender": (2, 79, 0),
     "location": "Properties area > Render tab > Focal Lock",

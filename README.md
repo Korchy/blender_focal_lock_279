@@ -23,6 +23,11 @@ Installation
 - Download the *.zip archive with the add-on distributive.
 - The “Preferences” window — Add-ons — Install… — specify the downloaded archive.
 
+By
+-
+Nikita Akimov
+Paul Kotelevec
+
 Version history
 -
 1.0.2.
