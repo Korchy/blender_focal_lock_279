@@ -25,8 +25,7 @@ Installation
 
 By
 -
-Nikita Akimov
-Paul Kotelevec
+Nikita Akimov, Paul Kotelevec
 
 Version history
 -
