@@ -14,7 +14,7 @@ bl_info = {
     "name": "Focal Lock",
     "description": "Locks object in a camera's plane of focus",
     "author": "Nikita Akimov, Paul Kotelevec, Anson Savage <artstation.com/ansonsavage>, Nathan Craddock <nathancraddock.com>",
-    "version": (1, 0, 2),
+    "version": (1, 1, 0),
     "blender": (2, 79, 0),
     "location": "Properties area > Render tab > Focal Lock",
     "doc_url": "https://github.com/Korchy/blender_focal_lock_279",
@@ -91,9 +91,8 @@ def update_focal_length(*agrs):
     # for each camera with focal_lock enabled...
     for camera in bpy.data.cameras:
         if camera.focal_lock.enable_lock and camera.focal_lock.focus_object is not None:
-            currentDistance = distance_to_plane(camera.focal_lock.focus_object)
-            camera.lens = currentDistance * (camera.focal_lock.focal_distance_ratio)
-            # bpy.context.scene.camera.lens = currentDistance * (bpy.context.scene.camera_settings.focal_distance_ratio)
+            current_distance = distance_to_plane(camera.focal_lock.focus_object)
+            camera.lens = current_distance * camera.focal_lock.focal_distance_ratio
     if bpy.context.screen:
         for area in bpy.context.screen.areas:
             area.tag_redraw()
@@ -127,6 +126,25 @@ class ClearBakeFocalLength(Operator):
         return {'FINISHED'}
 
 
+class FOCAL_LOCK_OT_clear_all(Operator):
+    bl_idname = "focal_lock.clear_all"
+    bl_label = "Clear All"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    clear_active = BoolProperty(
+        default=False
+    )
+
+    def execute(self, context):
+        for cam in context.blend_data.cameras:
+            if cam.name != context.scene.camera.name or self.clear_active:
+                if cam.focal_lock.enable_track:
+                    cam.focal_lock.enable_track = False
+                if cam.focal_lock.enable_lock:
+                    cam.focal_lock.enable_lock = False
+        return {'FINISHED'}
+
+
 # PANELS
 
 class FOCALLOCK_PT_FocalLock(Panel):
@@ -152,20 +170,27 @@ class FOCALLOCK_PT_FocalLock(Panel):
         cam = context.scene.camera.data
         settings = cam.focal_lock
         layout = self.layout
-        layout.enabled = settings.enable_lock
 
         col = layout.column()
+        col.enabled = settings.enable_lock
 
         # Property to set the focus object
         col.prop(settings, "focus_object", text="Focus Object")
 
         # Mechanics
-        col = layout.column()
         # col.prop(settings, 'enable_lock')
         col.prop(settings, 'enable_track')
-        col = layout.column()
         sub = col.column(align=True)
         sub.prop(cam, 'lens', text="Focal Length")
+
+        # clear all other
+        cams = len(context.blend_data.cameras)
+        cams_locked = len([c for c in context.blend_data.cameras if c.focal_lock.enable_lock])
+        layout.label(text='Enabled on ' + str(cams_locked) + '/' + str(cams))
+        layout.operator(
+            operator='focal_lock.clear_all',
+            text='Clear All Other'
+        )
 
 
 class FOCALLOCK_PT_BakeSettings(Panel):
@@ -234,7 +259,8 @@ classes = (
     FocalLockSettings,
     BakeFocalLength,
     ClearBakeFocalLength,
-    FOCALLOCK_PT_BakeSettings
+    FOCALLOCK_PT_BakeSettings,
+    FOCAL_LOCK_OT_clear_all
     )
 
 handlers = [bpy.app.handlers.scene_update_post, bpy.app.handlers.frame_change_post, bpy.app.handlers.load_post]

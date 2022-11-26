@@ -8,7 +8,7 @@ Source: https://github.com/AnsonSavage/Focal_Lock
 
 Current add-on version
 -
-1.0.2.
+1.1.0.
 
 Blender versions
 -
@@ -29,6 +29,9 @@ Nikita Akimov, Paul Kotelevec
 
 Version history
 -
+1.1.0.
+- Added operator for clearing focal lock option for all cameras except scene active 
+
 1.0.2.
 - Fixed issue with Track constraint
 
