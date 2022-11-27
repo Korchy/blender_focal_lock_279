@@ -6,7 +6,7 @@
 
 import bpy
 from bpy.props import BoolProperty, FloatProperty, PointerProperty
-from bpy.types import Panel, PropertyGroup, Operator, Object, Camera
+from bpy.types import AddonPreferences, Panel, PropertyGroup, Operator, Object, Camera
 from bpy.app.handlers import persistent
 from bpy.utils import register_class, unregister_class
 
@@ -14,7 +14,7 @@ bl_info = {
     "name": "Focal Lock",
     "description": "Locks object in a camera's plane of focus",
     "author": "Nikita Akimov, Paul Kotelevec, Anson Savage <artstation.com/ansonsavage>, Nathan Craddock <nathancraddock.com>",
-    "version": (1, 1, 0),
+    "version": (1, 1, 1),
     "blender": (2, 79, 0),
     "location": "Properties area > Render tab > Focal Lock",
     "doc_url": "https://github.com/Korchy/blender_focal_lock_279",
@@ -48,7 +48,7 @@ def camera_track_constraint(context):
 # WATCHER FUNCTIONS
 
 def update_focus_object(self, context):
-    settings = context.scene.camera.data.focal_lock
+    settings = self
     update_enable_lock(self, context)   # run this so that all the original settings are made again
     # here's where all the code should go when the focus object is updated!
     if settings.enable_track:
@@ -59,8 +59,7 @@ def update_focus_object(self, context):
 # tracking settings.focus_object is None. Shouldn't be too hard to fix though, just don't
 # do anything when it is None :)
 def update_enable_lock(self, context):
-    # settings = context.object.data.focal_lock
-    settings = context.scene.camera.data.focal_lock
+    settings = self
     enable_lock = settings.enable_lock
     if enable_lock and settings.focus_object is not None:
         # Set original focal length
@@ -72,8 +71,7 @@ def update_enable_lock(self, context):
 
 
 def update_enable_track(self, context):
-    settings = context.scene.camera.data.focal_lock
-
+    settings = self
     # because you are only accessing enable_track once, no need to store in variable
     if settings.enable_track:
         track_constraint = context.scene.camera.constraints.new(type='TRACK_TO')
@@ -88,8 +86,13 @@ def update_enable_track(self, context):
 
 @persistent
 def update_focal_length(*agrs):
-    # for each camera with focal_lock enabled...
-    for camera in bpy.data.cameras:
+    if bpy.context.user_preferences.addons[__name__].preferences.update_only_active:
+        # only for active camera
+        cameras = [bpy.context.scene.camera.data]
+    else:
+        # for each camera with focal_lock enabled...
+        cameras = bpy.data.cameras[:]
+    for camera in cameras:
         if camera.focal_lock.enable_lock and camera.focal_lock.focus_object is not None:
             current_distance = distance_to_plane(camera.focal_lock.focus_object)
             camera.lens = current_distance * camera.focal_lock.focal_distance_ratio
@@ -123,25 +126,6 @@ class ClearBakeFocalLength(Operator):
         for frame in range(context.scene.frame_start, context.scene.frame_end + 1):
             scene.frame_set(frame)
             cam.data.keyframe_delete(data_path="lens")
-        return {'FINISHED'}
-
-
-class FOCAL_LOCK_OT_clear_all(Operator):
-    bl_idname = "focal_lock.clear_all"
-    bl_label = "Clear All"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    clear_active = BoolProperty(
-        default=False
-    )
-
-    def execute(self, context):
-        for cam in context.blend_data.cameras:
-            if cam.name != context.scene.camera.name or self.clear_active:
-                if cam.focal_lock.enable_track:
-                    cam.focal_lock.enable_track = False
-                if cam.focal_lock.enable_lock:
-                    cam.focal_lock.enable_lock = False
         return {'FINISHED'}
 
 
@@ -183,13 +167,10 @@ class FOCALLOCK_PT_FocalLock(Panel):
         sub = col.column(align=True)
         sub.prop(cam, 'lens', text="Focal Length")
 
-        # clear all other
-        cams = len(context.blend_data.cameras)
-        cams_locked = len([c for c in context.blend_data.cameras if c.focal_lock.enable_lock])
-        layout.label(text='Enabled on ' + str(cams_locked) + '/' + str(cams))
-        layout.operator(
-            operator='focal_lock.clear_all',
-            text='Clear All Other'
+        # update only for active camera
+        layout.prop(
+            data=context.user_preferences.addons[__name__].preferences,
+            property='update_only_active'
         )
 
 
@@ -236,31 +217,46 @@ class FocalLockSettings(PropertyGroup):
         name="Focus Object",
         type=Object,
         description="The object you would like the camera to focus on",
-        update=update_focus_object
+        update=lambda self, context: update_focus_object(self=self, context=context)
         )
     enable_lock = BoolProperty(
         name="Lock",
         description="Lock camera zoom to focus object",
         default=False,
-        update=update_enable_lock
+        update=lambda self, context: update_enable_lock(self=self, context=context)
         )
     enable_track = BoolProperty(
         name="Track camera to object",
         description="Add a tracking constraint to camera so it always stays focussed on the object",
         default=False,
-        update=update_enable_track
+        update=lambda self, context: update_enable_track(self=self, context=context)
         )
+
+
+# PREFERENCES
+
+class FOCALLOCK_preferences(AddonPreferences):
+    bl_idname = __name__
+
+    update_only_active = BoolProperty(
+        name='Update only for active camera',
+        default=True
+    )
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "update_only_active")
 
 
 # REGISTRATION AND UNREGISTRATION
 
 classes = (
+    FOCALLOCK_preferences,
     FOCALLOCK_PT_FocalLock,
     FocalLockSettings,
     BakeFocalLength,
     ClearBakeFocalLength,
-    FOCALLOCK_PT_BakeSettings,
-    FOCAL_LOCK_OT_clear_all
+    FOCALLOCK_PT_BakeSettings
     )
 
 handlers = [bpy.app.handlers.scene_update_post, bpy.app.handlers.frame_change_post, bpy.app.handlers.load_post]
