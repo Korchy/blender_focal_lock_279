@@ -8,7 +8,7 @@ Source: https://github.com/AnsonSavage/Focal_Lock
 
 Current add-on version
 -
-1.1.1.
+1.3.0.
 
 Blender versions
 -
@@ -25,10 +25,22 @@ Installation
 
 By
 -
-Nikita Akimov, Paul Kotelevec
+Nikita Akimov, Paul Kotelevets
 
 Version history
 -
+1.3.0.
+- Added the "Shift Lock" functional for "Shift X" parameter
+
+1.2.1.
+- Fixed issue with renamed cameras
+
+1.2.0.
+- Added the "Auto reset" checkbox. If it is on - when enabling the "Enable Lock" checkbox, for all other cameras the "Enable Lock" checkboxes are off (like pressing the "Clear All Other" button)
+
+1.1.2.
+- Try to return back button for clearing lock in all other cameras 
+
 1.1.1.
 - Operator for clearing other cameras replaced with option "Updated only for active camera" due to some issues with cameras properties recalculating 
 
