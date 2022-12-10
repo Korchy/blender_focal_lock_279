@@ -51,21 +51,26 @@ def update_shift_lock(context, camera_obj, x=False, y=False):
     # shift lock correction for camera
     if camera_obj:
         if y:
-            shift_diff = round(camera_obj.data.shift_lock.shift_y, 3) - round(camera_obj.data.shift_y, 3)
-            if shift_diff:
-                camera_obj.data.shift_lock.shift_y = camera_obj.data.shift_y
-                camera_obj.rotation_euler[0] += round(math.atan(shift_diff), 3)
+            shift_diff = round(camera_obj.data.shift_y, 3) - round(camera_obj.data.shift_lock.shift_y, 3)
+            camera_obj.rotation_euler[0] = camera_obj.data.shift_lock.cam_rot_x - \
+                                           round(math.atan(shift_diff), 3)
+                                           # round(math.atan(camera_obj.data.shift_y), 3)
+
+            # shift_diff = round(camera_obj.data.shift_lock.shift_y, 3) - round(camera_obj.data.shift_y, 3)
+            # if shift_diff:
+            #     camera_obj.data.shift_lock.shift_y = camera_obj.data.shift_y
+            #     camera_obj.rotation_euler[0] += round(math.atan(shift_diff), 3)
         if x:
-            shift_diff = round(camera_obj.data.shift_lock.shift_x, 3) - round(camera_obj.data.shift_x, 3)
-            if shift_diff:
-                camera_obj.data.shift_lock.shift_x = camera_obj.data.shift_x
-                camera_obj.rotation_euler[2] += round(math.atan(shift_diff), 3)
+            shift_diff = round(camera_obj.data.shift_x, 3) - round(camera_obj.data.shift_lock.shift_x, 3)
+            camera_obj.rotation_euler[2] = camera_obj.data.shift_lock.cam_rot_x - \
+                                           round(math.atan(shift_diff), 3)
 
 
 def shift_lock_clear(context):
     # clear shift lock parameters
     context.scene.camera.data.shift_lock.shift_x = context.scene.camera.data.shift_x
     context.scene.camera.data.shift_lock.shift_y = context.scene.camera.data.shift_y
+    context.scene.camera.data.shift_lock.cam_rot_x = context.scene.camera.rotation_euler[0]
 
 
 # WATCHER FUNCTIONS
@@ -127,12 +132,13 @@ def update_focal_length(*agrs):
             camera.lens = current_distance * camera.focal_lock.focal_distance_ratio
 
     # shift lock
-    update_shift_lock(
-        camera_obj=context.scene.camera,
-        context=context,
-        y=context.scene.shift_lock_y,
-        x=context.scene.shift_lock_x
-    )
+    if context.scene.shift_lock_y or context.scene.shift_lock_x:
+        update_shift_lock(
+            camera_obj=context.scene.camera,
+            context=context,
+            y=context.scene.shift_lock_y,
+            x=context.scene.shift_lock_x
+        )
 
     # refresh screen
     if bpy.context.screen:
@@ -342,6 +348,9 @@ class ShiftLockProps(PropertyGroup):
     shift_y = FloatProperty(
         name='shift Y value'
         )
+    cam_rot_x = FloatProperty(
+        name='Camera X rotation'
+    )
 
 
 # PREFERENCES
