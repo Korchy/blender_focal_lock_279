@@ -16,7 +16,7 @@ bl_info = {
     "description": "Locks object in a camera's plane of focus",
     "author": "Nikita Akimov, Paul Kotelevets, Anson Savage <artstation.com/ansonsavage>, "
               "Nathan Craddock <nathancraddock.com>",
-    "version": (1, 3, 0),
+    "version": (1, 3, 1),
     "blender": (2, 79, 0),
     "location": "Properties area > Render tab > Focal Lock",
     "doc_url": "https://github.com/Korchy/blender_focal_lock_279",
@@ -53,7 +53,7 @@ def update_shift_lock(context, camera_obj, x=False, y=False):
         if y:
             shift_diff = round(camera_obj.data.shift_y, 3) - round(camera_obj.data.shift_lock.shift_y, 3)
             camera_obj.rotation_euler[0] = camera_obj.data.shift_lock.cam_rot_x - \
-                                           round(math.atan(shift_diff), 3)
+                                           round(math.atan(0.915 * shift_diff), 3)
                                            # round(math.atan(camera_obj.data.shift_y), 3)
 
             # shift_diff = round(camera_obj.data.shift_lock.shift_y, 3) - round(camera_obj.data.shift_y, 3)
@@ -63,7 +63,7 @@ def update_shift_lock(context, camera_obj, x=False, y=False):
         if x:
             shift_diff = round(camera_obj.data.shift_x, 3) - round(camera_obj.data.shift_lock.shift_x, 3)
             camera_obj.rotation_euler[2] = camera_obj.data.shift_lock.cam_rot_x - \
-                                           round(math.atan(shift_diff), 3)
+                                           round(math.atan(0.915 * shift_diff), 3)
 
 
 def shift_lock_clear(context):

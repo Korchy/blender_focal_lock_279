@@ -8,7 +8,7 @@ Source: https://github.com/AnsonSavage/Focal_Lock
 
 Current add-on version
 -
-1.3.0.
+1.3.1.
 
 Blender versions
 -
@@ -29,6 +29,9 @@ Nikita Akimov, Paul Kotelevets
 
 Version history
 -
+1.3.1.
+- Fixed formula fro Shift X
+
 1.3.0.
 - Added the "Shift Lock" functional for "Shift X" parameter
 
