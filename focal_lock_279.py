@@ -50,10 +50,11 @@ def camera_track_constraint(context):
 def update_shift_lock(context, camera_obj, x=False, y=False):
     # shift lock correction for camera
     if camera_obj:
+        cam_coefficient = camera_obj.data.sensor_width / camera_obj.data.lens
         if y:
             shift_diff = round(camera_obj.data.shift_y, 3) - round(camera_obj.data.shift_lock.shift_y, 3)
             camera_obj.rotation_euler[0] = camera_obj.data.shift_lock.cam_rot_x - \
-                                           round(math.atan(0.915 * shift_diff), 3)
+                                           round(math.atan(cam_coefficient * shift_diff), 3)
                                            # round(math.atan(camera_obj.data.shift_y), 3)
 
             # shift_diff = round(camera_obj.data.shift_lock.shift_y, 3) - round(camera_obj.data.shift_y, 3)
@@ -63,7 +64,7 @@ def update_shift_lock(context, camera_obj, x=False, y=False):
         if x:
             shift_diff = round(camera_obj.data.shift_x, 3) - round(camera_obj.data.shift_lock.shift_x, 3)
             camera_obj.rotation_euler[2] = camera_obj.data.shift_lock.cam_rot_x - \
-                                           round(math.atan(0.915 * shift_diff), 3)
+                                           round(math.atan(cam_coefficient * shift_diff), 3)
 
 
 def shift_lock_clear(context):
