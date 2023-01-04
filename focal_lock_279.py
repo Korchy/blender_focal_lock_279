@@ -266,6 +266,7 @@ class FOCALLOCK_PT_shift_lock(Panel):
     bl_label = 'Shift Lock'
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
+    bl_context = "data"
 
     @classmethod
     def poll(cls, context):
