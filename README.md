@@ -29,6 +29,9 @@ Nikita Akimov, Paul Kotelevets
 
 Version history
 -
+1.3.3.
+- Added option "Enabled for the scene". If checkbox is OFF - doesn't process Focal Lock work. If ON - Focal Lock works, but can high load CPU on week computers.
+
 1.3.2.
 - Fixed error if no cameras in the scene
 

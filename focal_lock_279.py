@@ -16,7 +16,7 @@ bl_info = {
     "description": "Locks object in a camera's plane of focus",
     "author": "Nikita Akimov, Paul Kotelevets, Anson Savage <artstation.com/ansonsavage>, "
               "Nathan Craddock <nathancraddock.com>",
-    "version": (1, 3, 2),
+    "version": (1, 3, 3),
     "blender": (2, 79, 0),
     "location": "Properties area > Render tab > Focal Lock",
     "doc_url": "https://github.com/Korchy/blender_focal_lock_279",
@@ -121,30 +121,31 @@ def update_enable_track(self, context):
 @persistent
 def update_focal_length(*agrs):
     context = bpy.context
-    if context.user_preferences.addons[__name__].preferences.update_only_active:
-        # only for active camera
-        cameras = [context.scene.camera.data] if context.scene.camera else []
-    else:
-        # for each camera with focal_lock enabled...
-        cameras = bpy.data.cameras[:]
-    for camera in cameras:
-        if camera.focal_lock.enable_lock and camera.focal_lock.focus_object is not None:
-            current_distance = distance_to_plane(camera.focal_lock.focus_object)
-            camera.lens = current_distance * camera.focal_lock.focal_distance_ratio
+    if context.scene.focal_lock_global:     # process only if enabled for current scene or has high loading of CPU
+        if context.user_preferences.addons[__name__].preferences.update_only_active:
+            # only for active camera
+            cameras = [context.scene.camera.data] if context.scene.camera else []
+        else:
+            # for each camera with focal_lock enabled...
+            cameras = bpy.data.cameras[:]
+        for camera in cameras:
+            if camera.focal_lock.enable_lock and camera.focal_lock.focus_object is not None:
+                current_distance = distance_to_plane(camera.focal_lock.focus_object)
+                camera.lens = current_distance * camera.focal_lock.focal_distance_ratio
 
-    # shift lock
-    if context.scene.shift_lock_y or context.scene.shift_lock_x:
-        update_shift_lock(
-            camera_obj=context.scene.camera,
-            context=context,
-            y=context.scene.shift_lock_y,
-            x=context.scene.shift_lock_x
-        )
+        # shift lock
+        if context.scene.shift_lock_y or context.scene.shift_lock_x:
+            update_shift_lock(
+                camera_obj=context.scene.camera,
+                context=context,
+                y=context.scene.shift_lock_y,
+                x=context.scene.shift_lock_x
+            )
 
-    # refresh screen
-    if bpy.context.screen:
-        for area in bpy.context.screen.areas:
-            area.tag_redraw()
+        # refresh screen
+        if bpy.context.screen:
+            for area in bpy.context.screen.areas:
+                area.tag_redraw()
 
 
 def clear_all_other(context, clear_active=False):
@@ -225,6 +226,12 @@ class FOCALLOCK_PT_FocalLock(Panel):
         cam = context.scene.camera.data
         settings = cam.focal_lock
         layout = self.layout
+
+        layout.prop(
+            data=context.scene,
+            property='focal_lock_global',
+            text='Enabled for the scene'
+        )
 
         col = layout.column()
         col.enabled = settings.enable_lock
@@ -398,6 +405,11 @@ def register():
         register_class(cls)
 
     Camera.focal_lock = PointerProperty(type=FocalLockSettings)
+
+    Scene.focal_lock_global = BoolProperty(
+        name='Enable/Disable Focal Lock add-on on this scene',
+        default=False,
+    )
 
     Scene.shift_lock_y = BoolProperty(
         name='Shift Lock Y',
