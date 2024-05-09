@@ -16,7 +16,7 @@ bl_info = {
     "description": "Locks object in a camera's plane of focus",
     "author": "Nikita Akimov, Paul Kotelevets, Anson Savage <artstation.com/ansonsavage>, "
               "Nathan Craddock <nathancraddock.com>",
-    "version": (1, 3, 1),
+    "version": (1, 3, 2),
     "blender": (2, 79, 0),
     "location": "Properties area > Render tab > Focal Lock",
     "doc_url": "https://github.com/Korchy/blender_focal_lock_279",
@@ -123,7 +123,7 @@ def update_focal_length(*agrs):
     context = bpy.context
     if context.user_preferences.addons[__name__].preferences.update_only_active:
         # only for active camera
-        cameras = [context.scene.camera.data]
+        cameras = [context.scene.camera.data] if context.scene.camera else []
     else:
         # for each camera with focal_lock enabled...
         cameras = bpy.data.cameras[:]
@@ -376,7 +376,7 @@ class FOCALLOCK_preferences(AddonPreferences):
         layout.prop(self, "auto_reset")
 
 
-# REGISTRATION AND UNREGISTRATION
+# REGISTRATION AND UNREGISTER
 
 classes = (
     FOCALLOCK_preferences,

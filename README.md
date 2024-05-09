@@ -29,8 +29,11 @@ Nikita Akimov, Paul Kotelevets
 
 Version history
 -
+1.3.2.
+- Fixed error if no cameras in the scene
+
 1.3.1.
-- Fixed formula fro Shift X
+- Fixed formula from Shift X
 
 1.3.0.
 - Added the "Shift Lock" functional for "Shift X" parameter
